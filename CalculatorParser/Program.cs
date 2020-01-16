@@ -39,12 +39,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 
 
 namespace CalculatorParser
 {
-    public enum PieceType
+    // 数式内の要素タイプ
+    public enum ExprType
     {
         UNKNOWN,
         NUBER,
@@ -53,23 +53,23 @@ namespace CalculatorParser
         OPERATOR_MULITPLY,
         OPERATOR_DIVIDE,
         OPERATOR_PRIORIZED,
-        OPERATOR_PRIORIZE_START,
-        OPERATOR_PRIORIZE_END,
     }
 
+    // TODO : BNR表記に合わせる
+
+    // 数式内の要素
+    // Visitorパターン使うの？
     public struct ExprPiece
     {
-        public PieceType Type;
+        public ExprType Type;
         public int Number;
-        public int Priority;
+        public List<ExprPiece> exprPieces;
 
         public override string ToString()
         {
             string to_str = "";
 
-            for (int i = 0; i < Priority; i++) to_str += "\t";
-
-            if (Type == PieceType.NUBER)
+            if (Type == ExprType.NUBER)
             {
                 to_str += Number.ToString();
             }
@@ -81,65 +81,109 @@ namespace CalculatorParser
         }
     }
 
+    // 数式パーサ
     static class CalculatorParser
     {
-        public static Dictionary<PieceType, string> operator_dict = new Dictionary<PieceType, string>() {
-            [PieceType.OPERATOR_PLUS] = "+",
-            [PieceType.OPERATOR_MINUS] = "-",
-            [PieceType.OPERATOR_MULITPLY] = "*",
-            [PieceType.OPERATOR_DIVIDE] = "/",
-            [PieceType.OPERATOR_PRIORIZE_START] = "(",
-            [PieceType.OPERATOR_PRIORIZE_END] = ")",
-            [PieceType.OPERATOR_PRIORIZED] = "()"
+        public static Dictionary<ExprType, string> operator_dict = new Dictionary<ExprType, string>() {
+            [ExprType.OPERATOR_PLUS] = "+",
+            [ExprType.OPERATOR_MINUS] = "-",
+            [ExprType.OPERATOR_MULITPLY] = "*",
+            [ExprType.OPERATOR_DIVIDE] = "/",
+            [ExprType.OPERATOR_PRIORIZED] = "()"
         };
 
+        public static ExprType GetDictKey(string es)
+        {
+            return operator_dict.First(x => x.Value == es.ToString()).Key;
+        }
+
        
-        public static List<ExprPiece> Parse(string s)
+        private static List<ExprPiece> Parsing(string s, ref int i)
         {
             var eplist = new List<ExprPiece>();
 
             int num = 0;
-            int priority = 0;
 
-            foreach (char c in s.ToCharArray())
+            while(i < s.Length)
             {
-                if (char.IsDigit(c))
+                if (char.IsDigit(s[i]))
                 {
-                    num = num * 10 + c - '0';
+                    do
+                    {
+                        num = num * 10 + s[i++] - '0';
+                    }
+                    while (i < s.Length && char.IsDigit(s[i]));
+
+                    // 数値をリストに追加
+                    var ep = new ExprPiece
+                    {
+                        Type = ExprType.NUBER,
+                        Number = num
+                    };
+                    eplist.Add(ep);
+
+                    // 数値初期化
+                    num = 0;
                 }
                 else
                 {
-                    var ep = new ExprPiece
-                    {
-                        Type = PieceType.NUBER,
-                        Number = num,
-                        Priority = priority
-                    };
-                    eplist.Add(ep);
-                    num = 0;
-
                     // TODO: プライオリティ数値を廃止し、ExprPiece内にList<ExprPirce>を持たせる
-                    if (c == ')')
+                    if (s[i] == '(')
                     {
-                        priority--;
+                        i++;
+                        var ep = new ExprPiece
+                        {
+                            Type = ExprType.OPERATOR_PRIORIZED,
+                            exprPieces = Parsing(s, ref i),
+                        };
+                        eplist.Add(ep);
                     }
-                    ep = new ExprPiece
+                    else if (s[i] == ')')
                     {
-                        Type = operator_dict.First(x => x.Value == c.ToString()).Key,
-                        Priority = priority
-                    };
-                    if (c == '(')
-                    {
-                        priority++;
+                        i++;
+                        return eplist;
                     }
-                    eplist.Add(ep);
+                    else
+                    {
+                        // 通常の四則演算
+                        var ep = new ExprPiece
+                        {
+                            Type = GetDictKey(s[i++].ToString())
+                        };
+                        eplist.Add(ep);
+                    }
                 }
             }
 
-            foreach (var ep in eplist)
-                Console.WriteLine(ep);
-
             return eplist;
+        }
+
+        public static void Print(List<ExprPiece> eplist)
+        {
+            foreach (var ep in eplist)
+            {
+                if (ep.Type == ExprType.OPERATOR_PRIORIZED)
+                {
+                    Console.Write("\n( ");
+                    Print(ep.exprPieces);
+                    Console.Write(")\n");
+                }
+                else
+                {
+                    Console.Write(ep.ToString() + " ");
+                }
+            }
+        }
+
+        public static List<ExprPiece> Parse(string s)
+        {
+            int i = 0;
+            var ep = Parsing(s, ref i);
+
+            Print(ep);
+
+
+            return ep;
         }
     }
 
@@ -149,8 +193,8 @@ namespace CalculatorParser
         {
             Console.WriteLine("CalculatorParser Test");
 
-            //string expr = "1+2*(3+4)+5*(6*(7+8)+(9+10))";
-            string expr = "231+(9832*6232/(1230-777))-20";
+            string expr = "1+2*(3+4)+5*(6*(7+8)+(9+10))";
+            //string expr = "231+(9832*6232/(1230-777))-20";
             Console.WriteLine($"{expr} =  ...");
 
             List<ExprPiece> result;
