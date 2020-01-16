@@ -4,7 +4,8 @@
  *  C#で作ってもどうせ遅いので実用性は多分ほとんどない 
  *  気が向いたところまでやってみる
  *  
- *  BNF参考(というかほぼパクり)は https://qiita.com/toru0408/items/1ff86eccbed4ee0f6f95
+ *  BNF参考(というかほぼパクり) https://qiita.com/toru0408/items/1ff86eccbed4ee0f6f95
+ *  でもBNFのまま書き起こしてないという…
  *  
  *  {α} :αの0回以上の繰り返し
  *  [a] :αまたは空
@@ -51,8 +52,9 @@ namespace CalculatorParser
         OPERATOR_MINUS,
         OPERATOR_MULITPLY,
         OPERATOR_DIVIDE,
+        OPERATOR_PRIORIZED,
         OPERATOR_PRIORIZE_START,
-        OPERATOR_PRIORIZE_END
+        OPERATOR_PRIORIZE_END,
     }
 
     public struct ExprPiece
@@ -82,16 +84,17 @@ namespace CalculatorParser
     static class CalculatorParser
     {
         public static Dictionary<PieceType, string> operator_dict = new Dictionary<PieceType, string>() {
-            { PieceType.OPERATOR_PLUS, "+" },
-            { PieceType.OPERATOR_MINUS, "-" },
-            { PieceType.OPERATOR_MULITPLY, "*" },
-            { PieceType.OPERATOR_DIVIDE, "/" },
-            { PieceType.OPERATOR_PRIORIZE_START, "(" },
-            { PieceType.OPERATOR_PRIORIZE_END, ")" }
+            [PieceType.OPERATOR_PLUS] = "+",
+            [PieceType.OPERATOR_MINUS] = "-",
+            [PieceType.OPERATOR_MULITPLY] = "*",
+            [PieceType.OPERATOR_DIVIDE] = "/",
+            [PieceType.OPERATOR_PRIORIZE_START] = "(",
+            [PieceType.OPERATOR_PRIORIZE_END] = ")",
+            [PieceType.OPERATOR_PRIORIZED] = "()"
         };
 
        
-        public static (bool, List<ExprPiece>) Parse(string s)
+        public static List<ExprPiece> Parse(string s)
         {
             var eplist = new List<ExprPiece>();
 
@@ -115,20 +118,28 @@ namespace CalculatorParser
                     eplist.Add(ep);
                     num = 0;
 
-                    if (c == ')') priority--;
+                    // TODO: プライオリティ数値を廃止し、ExprPiece内にList<ExprPirce>を持たせる
+                    if (c == ')')
+                    {
+                        priority--;
+                    }
                     ep = new ExprPiece
                     {
                         Type = operator_dict.First(x => x.Value == c.ToString()).Key,
                         Priority = priority
                     };
-                    if (c == '(') priority++;
+                    if (c == '(')
+                    {
+                        priority++;
+                    }
                     eplist.Add(ep);
                 }
             }
 
+            foreach (var ep in eplist)
+                Console.WriteLine(ep);
 
-
-            return (true, eplist);
+            return eplist;
         }
     }
 
@@ -138,13 +149,12 @@ namespace CalculatorParser
         {
             Console.WriteLine("CalculatorParser Test");
 
-            string expr = "1+2*(3+4)+5*(6*(7+8)+(9+10))";
-            //string expr = "231+9832*6232/(1230-777)";
+            //string expr = "1+2*(3+4)+5*(6*(7+8)+(9+10))";
+            string expr = "231+(9832*6232/(1230-777))-20";
             Console.WriteLine($"{expr} =  ...");
 
-            bool result;
-            List<ExprPiece> error;
-            (result, error) = CalculatorParser.Parse(expr);
+            List<ExprPiece> result;
+            result = CalculatorParser.Parse(expr);
         }
     }
 }
