@@ -208,20 +208,6 @@ namespace CalculatorParser
             var formula = new FormulaNode();
             formula.Parse(expr);
             Console.WriteLine(formula);
-
-            string s;
-            DateTime start = DateTime.Now;
-            for (int i=0; i<500000; i++)
-            {
-                s = formula.ToString();
-            }
-            DateTime end = DateTime.Now;
-            Console.WriteLine("500000 Times : " + (end - start).ToString());
-            // string
-            // 500000 Times : 00:00:00.4478715
-            // string builder normal
-            // 500000 Times : 00:00:00.3768686            
-
         }
     }
 }
