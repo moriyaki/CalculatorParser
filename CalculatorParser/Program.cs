@@ -12,9 +12,9 @@
  *  (a) :αのグループ化
  
 	〈式〉::= 〈加算式〉
-	〈加算式〉::= 〈乗算式〉{〈加算演算子〉〈乗算式〉}
-	〈乗算式〉::= 〈単項式〉{〈乗算演算子〉〈乗算式〉}
-	〈単項式〉::=〈開括弧〉〈式〉〈閉括弧〉|〈数〉
+	〈加算式 expr〉::= 〈乗算式〉{〈加算演算子〉〈乗算式〉}
+	〈乗算式 term〉::= 〈単項式〉{〈乗算演算子〉〈乗算式〉}
+	〈単項式 factor〉::=〈開括弧〉〈式〉〈閉括弧〉|〈数〉
 
 	〈数〉::=〈整数〉
 	〈加算演算子〉::= “+” | “-”
@@ -37,6 +37,7 @@
  *  https://qiita.com/r-ngtm/items/490c5ce6d7f43f9677f1 ←考え方の参考になる
  */
 using System;
+using System.Text;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -46,7 +47,6 @@ namespace CalculatorParser
     // 数式内の要素タイプ
     public enum ExprType
     {
-        UNKNOWN,
         NUBER,
         OPERATOR_PLUS,
         OPERATOR_MINUS,
@@ -57,33 +57,65 @@ namespace CalculatorParser
 
     // TODO : BNR表記に合わせる
 
-    // 数式内の要素
-    // Visitorパターン使うの？
-    public struct ExprPiece
+    // 数式ノード
+    public class FormulaNode
     {
         public ExprType Type;
         public int Number;
-        public List<ExprPiece> exprPieces;
+        public List<FormulaNode> formula_list;
 
+        public FormulaNode()
+        {
+            formula_list = null;
+        }
+
+        // 数式の文字列化
         public override string ToString()
         {
-            string to_str = "";
-
-            if (Type == ExprType.NUBER)
+            if (formula_list == null && Type == ExprType.NUBER)
             {
-                to_str += Number.ToString();
+                return Number.ToString();
             }
             else
             {
-                to_str += CalculatorParser.operator_dict[Type];
+                StringBuilder expr = new StringBuilder();
+
+                foreach (var fl in formula_list)
+                {
+                    expr.Append(" ");
+                    if (fl.Type == ExprType.NUBER)
+                    {
+                        expr.Append(fl.Number);
+                    }
+                    else if (fl.Type == ExprType.OPERATOR_PRIORIZED)
+                    {
+                        expr.Append("(");
+                        expr.Append(fl.ToString());
+                        expr.Append(")");
+                    }
+                    else
+                    {
+                        expr.Append(CalculatorParser.operator_dict[fl.Type]);
+                    }
+                }
+
+                return expr.ToString();
             }
-            return to_str;
+
+        }
+
+        // パーサ呼び出し
+        public void Parse(string expr)
+        {
+            int i = 0;
+            formula_list = CalculatorParser.Parse(expr, ref i);
         }
     }
 
     // 数式パーサ
     static class CalculatorParser
     {
+        // 演算子種類→演算子文字列の辞書
         public static Dictionary<ExprType, string> operator_dict = new Dictionary<ExprType, string>() {
             [ExprType.OPERATOR_PLUS] = "+",
             [ExprType.OPERATOR_MINUS] = "-",
@@ -92,51 +124,56 @@ namespace CalculatorParser
             [ExprType.OPERATOR_PRIORIZED] = "()"
         };
 
+        // 演算子文字列→演算子種類の取得
         public static ExprType GetDictKey(string es)
         {
             return operator_dict.First(x => x.Value == es.ToString()).Key;
         }
 
-       
-        private static List<ExprPiece> Parsing(string s, ref int i)
-        {
-            var eplist = new List<ExprPiece>();
 
+        // 数の評価
+        private static int Number(string s, ref int i)
+        {
             int num = 0;
+
+            do
+            {
+                num = num * 10 + s[i++] - '0';
+            }
+            while (i < s.Length && char.IsDigit(s[i]));
+            return num;
+        }
+
+        public static List<FormulaNode> Parse(string s, ref int i)
+        {
+            var eplist = new List<FormulaNode>();
+            FormulaNode ep;
+
+            int num;
 
             while(i < s.Length)
             {
                 if (char.IsDigit(s[i]))
                 {
-                    do
-                    {
-                        num = num * 10 + s[i++] - '0';
-                    }
-                    while (i < s.Length && char.IsDigit(s[i]));
+                    num = Number(s, ref i);
 
                     // 数値をリストに追加
-                    var ep = new ExprPiece
+                    ep = new FormulaNode
                     {
                         Type = ExprType.NUBER,
-                        Number = num
+                        Number = num,
                     };
-                    eplist.Add(ep);
-
-                    // 数値初期化
-                    num = 0;
                 }
                 else
                 {
-                    // TODO: プライオリティ数値を廃止し、ExprPiece内にList<ExprPirce>を持たせる
                     if (s[i] == '(')
                     {
                         i++;
-                        var ep = new ExprPiece
+                        ep = new FormulaNode
                         {
                             Type = ExprType.OPERATOR_PRIORIZED,
-                            exprPieces = Parsing(s, ref i),
+                            formula_list = Parse(s, ref i),
                         };
-                        eplist.Add(ep);
                     }
                     else if (s[i] == ')')
                     {
@@ -146,44 +183,15 @@ namespace CalculatorParser
                     else
                     {
                         // 通常の四則演算
-                        var ep = new ExprPiece
-                        {
-                            Type = GetDictKey(s[i++].ToString())
+                        ep = new FormulaNode {
+                            Type = GetDictKey(s[i++].ToString()),
                         };
-                        eplist.Add(ep);
                     }
                 }
+                eplist.Add(ep);
             }
 
             return eplist;
-        }
-
-        public static void Print(List<ExprPiece> eplist)
-        {
-            foreach (var ep in eplist)
-            {
-                if (ep.Type == ExprType.OPERATOR_PRIORIZED)
-                {
-                    Console.Write("\n( ");
-                    Print(ep.exprPieces);
-                    Console.Write(")\n");
-                }
-                else
-                {
-                    Console.Write(ep.ToString() + " ");
-                }
-            }
-        }
-
-        public static List<ExprPiece> Parse(string s)
-        {
-            int i = 0;
-            var ep = Parsing(s, ref i);
-
-            Print(ep);
-
-
-            return ep;
         }
     }
 
@@ -193,12 +201,27 @@ namespace CalculatorParser
         {
             Console.WriteLine("CalculatorParser Test");
 
-            string expr = "1+2*(3+4)+5*(6*(7+8)+(9+10))";
-            //string expr = "231+(9832*6232/(1230-777))-20";
-            Console.WriteLine($"{expr} =  ...");
+            //string expr = "1+2*(3+4)+5*(6*(7+8)+(9+10))";
+            string expr = "231+(9832*6232/(1230-777))-21001";
+            Console.WriteLine($"{expr} =  114490.538 ...");
 
-            List<ExprPiece> result;
-            result = CalculatorParser.Parse(expr);
+            var formula = new FormulaNode();
+            formula.Parse(expr);
+            Console.WriteLine(formula);
+
+            string s;
+            DateTime start = DateTime.Now;
+            for (int i=0; i<500000; i++)
+            {
+                s = formula.ToString();
+            }
+            DateTime end = DateTime.Now;
+            Console.WriteLine("500000 Times : " + (end - start).ToString());
+            // string
+            // 500000 Times : 00:00:00.4478715
+            // string builder normal
+            // 500000 Times : 00:00:00.3768686            
+
         }
     }
 }
