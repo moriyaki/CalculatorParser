@@ -146,9 +146,7 @@ namespace CalculatorParser
 
         public static List<FormulaNode> Parse(string s, ref int i)
         {
-            var eplist = new List<FormulaNode>();
-            FormulaNode ep;
-
+            var fl_list = new List<FormulaNode>();
             int num;
 
             while(i < s.Length)
@@ -158,40 +156,43 @@ namespace CalculatorParser
                     num = Number(s, ref i);
 
                     // 数値をリストに追加
-                    ep = new FormulaNode
+                    fl_list.Add(new FormulaNode
                     {
                         Type = ExprType.NUBER,
                         Number = num,
-                    };
+                    });
                 }
                 else
                 {
                     if (s[i] == '(')
                     {
                         i++;
-                        ep = new FormulaNode
+                        fl_list.Add(new FormulaNode
                         {
                             Type = ExprType.OPERATOR_PRIORIZED,
                             formula_list = Parse(s, ref i),
-                        };
+                        });
                     }
                     else if (s[i] == ')')
                     {
                         i++;
-                        return eplist;
+                        return fl_list;
                     }
                     else
                     {
-                        // 通常の四則演算
-                        ep = new FormulaNode {
-                            Type = GetDictKey(s[i++].ToString()),
-                        };
+                        if (operator_dict.ContainsValue(s[i].ToString()))
+                        {
+                            // 演算子が見つかった
+                            fl_list.Add(new FormulaNode {
+                                Type = GetDictKey(s[i].ToString()),
+                            });
+                        }
+                        i++;
                     }
                 }
-                eplist.Add(ep);
             }
 
-            return eplist;
+            return fl_list;
         }
     }
 
@@ -202,7 +203,7 @@ namespace CalculatorParser
             Console.WriteLine("CalculatorParser Test");
 
             //string expr = "1+2*(3+4)+5*(6*(7+8)+(9+10))";
-            string expr = "231+(9832*6232/(1230-777))-21001";
+            string expr = "231 +(9832*6232/(1230-777))-21001";
             Console.WriteLine($"{expr} =  114490.538 ...");
 
             var formula = new FormulaNode();
