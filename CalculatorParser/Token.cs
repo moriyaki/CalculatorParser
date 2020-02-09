@@ -22,6 +22,8 @@ namespace CalculatorParser
         MINUS,
         // 数値
         NUBER,
+        // 小数点
+        DOT,
     }
 
     public class Token
@@ -45,6 +47,7 @@ namespace CalculatorParser
                 ['-'] = TokenType.MINUS,
                 ['*'] = TokenType.MULITPLY,
                 ['/'] = TokenType.DIVIDE,
+                ['.'] = TokenType.DOT,
             };
 
             if (Operators.ContainsKey(c))

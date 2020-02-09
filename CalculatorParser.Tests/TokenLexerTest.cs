@@ -11,7 +11,7 @@ namespace CalculatorParser.Tests
         [Fact(DisplayName = "演算子Tokenを正しく取れているか")]
         public void GetTokenOperatorTest()
         {
-            var formula = "+-*/()";
+            var formula = "+-*/().";
             var tokentype_array = new TokenType[]
             {
                 TokenType.PLUS,
@@ -20,6 +20,7 @@ namespace CalculatorParser.Tests
                 TokenType.DIVIDE,
                 TokenType.LPARAM,
                 TokenType.RPARAM,
+                TokenType.DOT,
                 TokenType.EOF,
             };
                
@@ -126,7 +127,7 @@ namespace CalculatorParser.Tests
         [Fact(DisplayName = "演算子と数値Token混合で上手く取れるか3")]
         public void GetTokenTest3()
         {
-            var formula = "22314+((1066+2256)*3948+(42658/8587))";
+            var formula = "22314+((1066+2256)*3.948+(42658/8587))";
 
             var tokentype_array = new TokenType[]
             {
@@ -141,8 +142,10 @@ namespace CalculatorParser.Tests
                 TokenType.PLUS,
                 TokenType.NUBER,
                 TokenType.RPARAM,
-                // *3948+
+                // *3.948+
                 TokenType.MULITPLY,
+                TokenType.NUBER,
+                TokenType.DOT,
                 TokenType.NUBER,
                 TokenType.PLUS,
                 // (42658*8587)
