@@ -1,4 +1,4 @@
-﻿/*  CalculatorParser
+/*  CalculatorParser
  *
  *  算術パーサー習作(臭作?)
  *  C#で作ってもどうせ遅いので実用性は多分ほとんどない 

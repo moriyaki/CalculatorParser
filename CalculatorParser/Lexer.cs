@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
@@ -18,30 +18,19 @@ namespace CalculatorParser
             LexInput =  _lex_input;
         }
 
-        /// <summary>
-        /// 引数 c の場所を列挙する
-        /// </summary>
-        /// <param name="c">列挙する文字</param>
-        /// <returns>見つかった場所</returns>
-        public IEnumerable<int> GetOperatorPoint(char c)
+        private string GetNumber(string number_start)
         {
-            // '(' と ')' が含まれていなければ終了
-            if (!LexInput.Contains(c))
+            var i=0;
+            while (i < number_start.Length && char.IsDigit(number_start[i]))
             {
-                yield break;
+                i++;
             }
-
-            var pos = LexInput.IndexOf(c);
-            while (pos != -1)
-            {
-                yield return pos;
-                pos = LexInput.IndexOf(c, ++pos);
-            }
+            return number_start.Substring(0, i);
         }
 
-        public bool GetToken()
+        public List<Token> GetToken()
         {
-            var token_list = new List<TokenType>();
+            var token_list = new List<Token>();
 
             for (var i = 0; i < LexInput.Length; i++)
             {
@@ -54,21 +43,27 @@ namespace CalculatorParser
                 TokenType token_type = Token.LookupOperators(LexInput[i]);
                 if (token_type != TokenType.UNKNOWN)
                 {
-                    token_list.Add(token_type);
+                    token_list.Add(new Token(token_type, LexInput[i].ToString()));
                     continue;
                 }
                 // 数値なら続く数字をチェック
                 if (char.IsDigit(LexInput[i]))
                 {
+                    var current_number = GetNumber(LexInput.Substring(i));
+                    token_list.Add(new Token(TokenType.NUBER, current_number));
+                    i += current_number.Length - 1;
+                    continue;
 
                 }
-
-
                 // 英字なら予約語チェック
                 // 予約語でないなら変数と見做す
+                // (後日、必要なら手を付ける)
+
             }
 
-            return false;
+            token_list.Add(new Token(TokenType.EOF, ""));
+
+            return token_list;
         }
     }
 }
