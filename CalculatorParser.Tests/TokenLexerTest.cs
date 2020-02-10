@@ -1,18 +1,33 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Xunit;
-using CalculatorParser;
 
 namespace CalculatorParser.Tests
 {
     public class TokenLexerTest
     {
-        [Fact(DisplayName = "演算子Tokenを正しく取れているか")]
+        private void TokenCheck(string formula, TokenType[] token_type_array, string number_check = "")
+        {
+            var lexer = new Lexer(formula);
+            var token = lexer.GetToken();
+            var i = 0;
+            foreach (var t in token)
+            {
+                Assert.Equal(t.Type, token_type_array[i++]);
+                if (t.Type == TokenType.NUBER && number_check != "")
+                {
+                    Assert.Equal(number_check, t.Literal);
+                }
+            }
+        }
+
+
+        /// <summary>
+        /// 記号のトークン取れてるかテスト
+        /// </summary>
+        [Fact(DisplayName = "+-*/().")]
         public void GetTokenOperatorTest()
         {
             var formula = "+-*/().";
-            var tokentype_array = new TokenType[]
+            var token_type_array = new TokenType[]
             {
                 TokenType.PLUS,
                 TokenType.MINUS,
@@ -23,48 +38,35 @@ namespace CalculatorParser.Tests
                 TokenType.DOT,
                 TokenType.EOF,
             };
-               
 
-            var lexer = new Lexer(formula);
-            var token = lexer.GetToken();
-            var i=0;
-            foreach (var t in token)
-            {
-                Assert.Equal(t.Type, tokentype_array[i++]);
-            }
-
+            TokenCheck(formula, token_type_array);
         }
 
-        [Fact(DisplayName = "数値Tokenを正しく取れているか")]
+        /// <summary>
+        /// 数値のトークン取れてるかテスト
+        /// </summary>
+        [Fact(DisplayName = "0123456789")]
         public void GetTokenNumbertest()
         {
             var formula = "0123456789";
-            var tokentype_array = new TokenType[]
+            var token_type_array = new TokenType[]
             {
                 TokenType.NUBER,
                 TokenType.EOF,
             };
 
-            var lexer = new Lexer(formula);
-            var token = lexer.GetToken();
-            var i=0;
-            foreach (var t in token)
-            {
-                Assert.Equal(t.Type, tokentype_array[i++]);
-                if (t.Type == TokenType.NUBER)
-                {
-                    Assert.Equal(formula, t.Literal);
-                }
-            }
-
+            TokenCheck(formula, token_type_array, formula);
         }
 
-        [Fact(DisplayName = "演算子と数値Token混合で上手く取れるか1")]
+        /// <summary>
+        /// 簡単な数式ののトークン取れてるかテスト
+        /// </summary>
+        [Fact(DisplayName = "2+3")]
         public void GetTokenTest1()
         {
             var formula = "2+3";
 
-            var tokentype_array = new TokenType[]
+            var token_type_array = new TokenType[]
             {
                 // 2+3
                 TokenType.NUBER,
@@ -73,21 +75,18 @@ namespace CalculatorParser.Tests
                 TokenType.EOF
             };
 
-            var lexer = new Lexer(formula);
-            var token = lexer.GetToken();
-            var i=0;
-            foreach (var t in token)
-            {
-                Assert.Equal(t.Type, tokentype_array[i++]);
-            }
+            TokenCheck(formula, token_type_array);
         }
 
-        [Fact(DisplayName = "演算子と数値Token混合で上手く取れるか2")]
+        /// <summary>
+        /// 比較的複雑な数式のトークン取れてるかテスト
+        /// </summary>
+        [Fact(DisplayName = "2+((1+2)*3+(4/8))")]
         public void GetTokenTest2()
         {
             var formula = "2+((1+2)*3+(4/8))";
 
-            var tokentype_array = new TokenType[]
+            var token_type_array = new TokenType[]
             {
                 // 2+
                 TokenType.NUBER,
@@ -115,21 +114,18 @@ namespace CalculatorParser.Tests
                 TokenType.EOF,
             };
 
-            var lexer = new Lexer(formula);
-            var token = lexer.GetToken();
-            var i=0;
-            foreach (var t in token)
-            {
-                Assert.Equal(t.Type, tokentype_array[i++]);
-            }
+            TokenCheck(formula, token_type_array);
         }
 
-        [Fact(DisplayName = "演算子と数値Token混合で上手く取れるか3")]
+        /// <summary>
+        /// 小数点込み数式のトークン取れてるかテスト
+        /// </summary>
+        [Fact(DisplayName = "22314+((1066+2256)*3.948+(42658/8587))")]
         public void GetTokenTest3()
         {
             var formula = "22314+((1066+2256)*3.948+(42658/8587))";
 
-            var tokentype_array = new TokenType[]
+            var token_type_array = new TokenType[]
             {
                 // 22314+
                 TokenType.NUBER,
@@ -159,13 +155,40 @@ namespace CalculatorParser.Tests
                 TokenType.EOF,
             };
 
-            var lexer = new Lexer(formula);
-            var token = lexer.GetToken();
-            var i=0;
-            foreach (var t in token)
+            TokenCheck(formula, token_type_array);
+        }
+
+        [Fact(DisplayName="231 +(9832*6232/ (1230-777))-21001")]
+        public void GetTokenTest4()
+        {
+            var formula = "231 +(9832*6232/ (1230-777))-21001";
+
+            var token_type_array = new TokenType[]
             {
-                Assert.Equal(t.Type, tokentype_array[i++]);
-            }
+                // 231 +
+                TokenType.NUBER,
+                TokenType.PLUS,
+                // (
+                TokenType.LPARAM,
+                // 9832*6232/
+                TokenType.NUBER,
+                TokenType.MULITPLY,
+                TokenType.NUBER,
+                TokenType.DIVIDE,
+                //  (1230-777)
+                TokenType.LPARAM,
+                TokenType.NUBER,
+                TokenType.MINUS,
+                TokenType.NUBER,
+                TokenType.RPARAM,
+                // )-21001
+                TokenType.RPARAM,
+                TokenType.MINUS,
+                TokenType.NUBER,
+                TokenType.EOF,
+            };
+
+            TokenCheck(formula, token_type_array);
         }
 
     }

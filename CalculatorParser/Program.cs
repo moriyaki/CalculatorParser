@@ -9,9 +9,6 @@
  *  https://qiita.com/r-ngtm/items/490c5ce6d7f43f9677f1 ←考え方の参考になる
  */
 using System;
-using System.Text;
-using System.Collections.Generic;
-using System.Linq;
 
 
 namespace CalculatorParser
@@ -22,22 +19,22 @@ namespace CalculatorParser
         {
             Console.WriteLine("CalculatorParser");
 
-            
-/*
-            //string expr = "1+2*(3+4)+5*(6*(7+8)+(9+10))";
-            string expr = "231 +(9832*6232/ (1230-777))-21001";
-            Console.WriteLine($"{expr} =  114490.538 ...");
 
-            DateTime start = DateTime.Now;
+            /*
+                        //string expr = "1+2*(3+4)+5*(6*(7+8)+(9+10))";
+                        string expr = "231 +(9832*6232/ (1230-777))-21001";
+                        Console.WriteLine($"{expr} =  114490.538 ...");
 
-            var formula = new FormulaNode();
-            formula.Parse(expr);
-            Console.WriteLine(formula + "...");
+                        DateTime start = DateTime.Now;
 
-            DateTime end = DateTime.Now;
+                        var formula = new FormulaNode();
+                        formula.Parse(expr);
+                        Console.WriteLine(formula + "...");
 
-            Console.WriteLine("Time... " + (end-start).ToString() );
-*/
+                        DateTime end = DateTime.Now;
+
+                        Console.WriteLine("Time... " + (end-start).ToString() );
+            */
         }
     }
 

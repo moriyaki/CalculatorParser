@@ -1,7 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Linq;
 
 namespace CalculatorParser
 {
@@ -15,12 +12,12 @@ namespace CalculatorParser
 
         public Lexer(string _lex_input)
         {
-            LexInput =  _lex_input;
+            LexInput = _lex_input;
         }
 
         private string GetNumber(string number_start)
         {
-            var i=0;
+            var i = 0;
             while (i < number_start.Length && char.IsDigit(number_start[i]))
             {
                 i++;
@@ -55,12 +52,8 @@ namespace CalculatorParser
                     continue;
 
                 }
-                // 英字なら予約語チェック
-                // 予約語でないなら変数と見做す
-                // (後日、必要なら手を付ける)
-
+                // 英字なら予約語チェック,予約語でないなら変数と見做す(後日、必要なら)
             }
-
             token_list.Add(new Token(TokenType.EOF, ""));
 
             return token_list;
