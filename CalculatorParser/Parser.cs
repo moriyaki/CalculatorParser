@@ -91,31 +91,83 @@ namespace CalculatorParser
 
     public class ValidityChecker
     {
+        /// <summary>
+        /// // '(' で +1、')' で -1、マイナス値になったらエラー、最終的に 0 ならOK
+        /// </summary>
+        /// <param name="token">チェックするTokenリスト</param>
+        /// <returns>括弧の整合性が取れているか</returns>
         public static bool ParamCheck(List<Token> token)
         {
-            // '(' で +1、')' で -1、マイナス値になったらエラー、最終的に 0 ならOK
+            
             var param = 0;
 
             foreach (var t in token)
             {
-                switch (t.Type)
+                if (t.Type == TokenType.LPARAM) param++;
+                if (t.Type == TokenType.RPARAM) param--;
+                if (param < 0) return false;
+            }
+            return param == 0;
+        }
+
+
+        /// <summary>
+        /// 演算子が続いていないか、続いていても2つ目がマイナス、かつ続くのが数値ならOK
+        /// </summary>
+        /// <param name="token">チェックするTokenリスト</param>
+        /// <returns>演算子の整合性が取れているか</returns>
+        public static bool OperatorCheck(List<Token> token)
+        {
+            for (var i = 0 ; i < token.Count; i++)
+            {
+                switch (token[i].Type)
                 {
-                    case TokenType.LPARAM:
-                        param++;
-                        break;
-                    case TokenType.RPARAM:
-                        param--;
+                    case TokenType.PLUS:
+                    case TokenType.MINUS:
+                    case TokenType.MULITPLY:
+                    case TokenType.DIVIDE:
+                        i++;
+                        if (i == token.Count) return false;
+                        // 次のTokenが演算子(非MINUS)か
+                        switch (token[i].Type)
+                        {
+                            case TokenType.PLUS:
+                            case TokenType.MULITPLY:
+                            case TokenType.DIVIDE:
+                                return false;
+                            case TokenType.MINUS:
+                                i++;
+                                if (i == token.Count) return false;
+                                // 演算子 + '-' + 数値なら負の数
+                                if (token[i].Type != TokenType.NUBER) return false;
+                                break;
+                        }
                         break;
                 }
-                if (param < 0)
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// '.' の前後が数字かどうか
+        /// </summary>
+        /// <param name="token">チェックするTokenリスト</param>
+        /// <returns>小数点の整合性が取れているか</returns>        
+        public static bool DotCheck(List<Token> token)
+        {
+            for (var i = 1; i < token.Count-1; i++)
+            {
+                if (token[i].Type != TokenType.DOT)
+                {
+                    continue;
+                }
+                if (!(token[i - 1].Type == TokenType.NUBER && token[i + 1].Type == TokenType.NUBER))
                 {
                     return false;
                 }
             }
-            
-            return param == 0;
+            return true;
         }
-
 
         public static bool ValidityCheck(List<Token> token)
         {
@@ -126,10 +178,15 @@ namespace CalculatorParser
             }
 
             // 演算子が続いてないか
-            // 続いていても 2つ目がマイナス、続いて数値ならOK
+            if (!OperatorCheck(token))
+            {
+                return false;
+            }
 
             // . の前後が数値かどうか
-
+            if (!DotCheck(token)){
+                return false;
+            }
 
             return true;
         }

@@ -227,5 +227,89 @@ namespace CalculatorParser.Tests
 
             Assert.False(ValidityChecker.ParamCheck(token_list));
         }
+
+        [Fact(DisplayName = "妥当性：++")]
+        public void PlusPlusTest()
+        {
+            var token_list = new List<Token>{
+                new Token(TokenType.PLUS, "+"),
+                new Token(TokenType.PLUS, "+"),
+            };
+            Assert.False(ValidityChecker.OperatorCheck(token_list));
+        }
+
+        [Fact(DisplayName = "妥当性：/*")]
+        public void DuvMulTest()
+        {
+            var token_list = new List<Token>{
+                new Token(TokenType.DIVIDE, "/"),
+                new Token(TokenType.MULITPLY, "*"),
+            };
+            Assert.False(ValidityChecker.OperatorCheck(token_list));
+        }
+
+        [Fact(DisplayName = "妥当性：*-20")]
+        public void MulMunusTwentyTest()
+        {
+            var token_list = new List<Token>{
+                new Token(TokenType.MULITPLY, "*"),
+                new Token(TokenType.MINUS, "-"),
+                new Token(TokenType.NUBER, "20"),
+            };
+            Assert.True(ValidityChecker.OperatorCheck(token_list));
+        }
+
+        [Fact(DisplayName = "妥当性：20*20--20")]
+        public void MinusCalcTwentyTest()
+        {
+            var token_list = new List<Token>{
+                new Token(TokenType.NUBER, "20"),
+                new Token(TokenType.MULITPLY, "*"),
+                new Token(TokenType.NUBER, "20"),
+                new Token(TokenType.MINUS, "-"),
+                new Token(TokenType.MINUS, "-"),
+                new Token(TokenType.NUBER, "20"),
+            };
+            Assert.True(ValidityChecker.OperatorCheck(token_list));
+        }
+
+
+        [Fact(DisplayName = "妥当性：20*20/20")]
+        public void MulDivTwentyTest()
+        {
+            var token_list = new List<Token>{
+                new Token(TokenType.NUBER, "20"),
+                new Token(TokenType.MULITPLY, "*"),
+                new Token(TokenType.NUBER, "20"),
+                new Token(TokenType.DIVIDE, "/"),
+                new Token(TokenType.NUBER, "20"),
+            };
+            Assert.True(ValidityChecker.OperatorCheck(token_list));
+        }
+
+        [Fact(DisplayName = "妥当性：20.34")]
+        public void DotTrueCheck()
+        {
+            var token_list = new List<Token>{
+                new Token(TokenType.NUBER, "20"),
+                new Token(TokenType.DOT, "."),
+                new Token(TokenType.NUBER, "34"),
+            };
+
+            Assert.True(ValidityChecker.DotCheck(token_list));
+        }
+
+        [Fact(DisplayName = "妥当性：20.*34")]
+        public void DotFalseCheck()
+        {
+            var token_list = new List<Token>{
+                new Token(TokenType.NUBER, "20"),
+                new Token(TokenType.DOT, "."),
+                new Token(TokenType.MULITPLY, "*"),
+                new Token(TokenType.NUBER, "34"),
+            };
+
+            Assert.False(ValidityChecker.DotCheck(token_list));
+        }
     }
 }
