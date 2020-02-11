@@ -1,4 +1,8 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Xunit;
+
 
 namespace CalculatorParser.Tests
 {
@@ -20,10 +24,7 @@ namespace CalculatorParser.Tests
         }
 
 
-        /// <summary>
-        /// 記号のトークン取れてるかテスト
-        /// </summary>
-        [Fact(DisplayName = "+-*/().")]
+        [Fact(DisplayName = "演算子")]
         public void GetTokenOperatorTest()
         {
             var formula = "+-*/().";
@@ -42,10 +43,7 @@ namespace CalculatorParser.Tests
             TokenCheck(formula, token_type_array);
         }
 
-        /// <summary>
-        /// 数値のトークン取れてるかテスト
-        /// </summary>
-        [Fact(DisplayName = "0123456789")]
+        [Fact(DisplayName = "数値")]
         public void GetTokenNumbertest()
         {
             var formula = "0123456789";
@@ -58,9 +56,6 @@ namespace CalculatorParser.Tests
             TokenCheck(formula, token_type_array, formula);
         }
 
-        /// <summary>
-        /// 簡単な数式ののトークン取れてるかテスト
-        /// </summary>
         [Fact(DisplayName = "2+3")]
         public void GetTokenTest1()
         {
@@ -78,9 +73,6 @@ namespace CalculatorParser.Tests
             TokenCheck(formula, token_type_array);
         }
 
-        /// <summary>
-        /// 比較的複雑な数式のトークン取れてるかテスト
-        /// </summary>
         [Fact(DisplayName = "2+((1+2)*3+(4/8))")]
         public void GetTokenTest2()
         {
@@ -117,9 +109,6 @@ namespace CalculatorParser.Tests
             TokenCheck(formula, token_type_array);
         }
 
-        /// <summary>
-        /// 小数点込み数式のトークン取れてるかテスト
-        /// </summary>
         [Fact(DisplayName = "22314+((1066+2256)*3.948+(42658/8587))")]
         public void GetTokenTest3()
         {
@@ -190,6 +179,53 @@ namespace CalculatorParser.Tests
 
             TokenCheck(formula, token_type_array);
         }
+    }
 
+    public class ValidityCheckerTest
+    {
+        private IEnumerable<Token> LeftParam(int number)
+        {
+            return (from i in Enumerable.Range(0, number)
+                    select new Token(TokenType.LPARAM, "("));
+        }
+
+        private IEnumerable<Token> RightParam(int number)
+        {
+            return (from i in Enumerable.Range(0, number)
+                    select new Token(TokenType.RPARAM, ")"));
+        }
+
+
+        [Fact(DisplayName = "妥当性：()")]
+        public void ValidityParamTest()
+        {
+            var token_list = new List<Token>();
+            token_list.AddRange(LeftParam(2));
+            token_list.AddRange(RightParam(1));
+            token_list.AddRange(LeftParam(1));
+            token_list.AddRange(RightParam(2));
+
+            Assert.True(ValidityChecker.ParamCheck(token_list));
+        }
+
+        [Fact(DisplayName = "妥当性：()))")]
+        public void RightParamOverTest()
+        {
+            var token_list = new List<Token>();
+            token_list.AddRange(LeftParam(1));
+            token_list.AddRange(RightParam(3));
+
+            Assert.False(ValidityChecker.ParamCheck(token_list));
+        }
+
+        [Fact(DisplayName = "妥当性：((()")]
+        public void LeftParamOverTest()
+        {
+            var token_list = new List<Token>();
+            token_list.AddRange(LeftParam(3));
+            token_list.AddRange(RightParam(1));
+
+            Assert.False(ValidityChecker.ParamCheck(token_list));
+        }
     }
 }
