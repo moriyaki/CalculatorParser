@@ -205,7 +205,8 @@ namespace CalculatorParser.Tests
             token_list.AddRange(LeftParam(1));
             token_list.AddRange(RightParam(2));
 
-            Assert.True(ValidityChecker.ParamCheck(token_list));
+            var validity_checker = new ValidityChecker();
+            Assert.True(validity_checker.ParamCheck(token_list));
         }
 
         [Fact(DisplayName = "妥当性：()))")]
@@ -215,7 +216,10 @@ namespace CalculatorParser.Tests
             token_list.AddRange(LeftParam(1));
             token_list.AddRange(RightParam(3));
 
-            Assert.False(ValidityChecker.ParamCheck(token_list));
+            var validity_checker = new ValidityChecker();
+            Assert.False(validity_checker.ParamCheck(token_list));
+            Assert.True(validity_checker.ErrorOccurred);
+            Assert.Contains(ValidityError.LPARAM_SHORTAGE, validity_checker.ErrorList);
         }
 
         [Fact(DisplayName = "妥当性：((()")]
@@ -225,7 +229,10 @@ namespace CalculatorParser.Tests
             token_list.AddRange(LeftParam(3));
             token_list.AddRange(RightParam(1));
 
-            Assert.False(ValidityChecker.ParamCheck(token_list));
+            var validity_checker = new ValidityChecker();
+            Assert.False(validity_checker.ParamCheck(token_list));
+            Assert.True(validity_checker.ErrorOccurred);
+            Assert.Contains(ValidityError.RPARAM_SHORTAGE, validity_checker.ErrorList);
         }
 
         [Fact(DisplayName = "妥当性：++")]
@@ -235,7 +242,8 @@ namespace CalculatorParser.Tests
                 new Token(TokenType.PLUS, "+"),
                 new Token(TokenType.PLUS, "+"),
             };
-            Assert.False(ValidityChecker.OperatorCheck(token_list));
+            var validity_checker = new ValidityChecker();
+            Assert.False(validity_checker.OperatorCheck(token_list));
         }
 
         [Fact(DisplayName = "妥当性：/*")]
@@ -245,7 +253,10 @@ namespace CalculatorParser.Tests
                 new Token(TokenType.DIVIDE, "/"),
                 new Token(TokenType.MULITPLY, "*"),
             };
-            Assert.False(ValidityChecker.OperatorCheck(token_list));
+            var validity_checker = new ValidityChecker();
+            Assert.False(validity_checker.OperatorCheck(token_list));
+            Assert.True(validity_checker.ErrorOccurred);
+            Assert.Contains(ValidityError.OPERATOR_INVALID, validity_checker.ErrorList);
         }
 
         [Fact(DisplayName = "妥当性：*-20")]
@@ -256,7 +267,8 @@ namespace CalculatorParser.Tests
                 new Token(TokenType.MINUS, "-"),
                 new Token(TokenType.NUBER, "20"),
             };
-            Assert.True(ValidityChecker.OperatorCheck(token_list));
+            var validity_checker = new ValidityChecker();
+            Assert.True(validity_checker.OperatorCheck(token_list));
         }
 
         [Fact(DisplayName = "妥当性：20*20--20")]
@@ -270,7 +282,8 @@ namespace CalculatorParser.Tests
                 new Token(TokenType.MINUS, "-"),
                 new Token(TokenType.NUBER, "20"),
             };
-            Assert.True(ValidityChecker.OperatorCheck(token_list));
+            var validity_checker = new ValidityChecker();
+            Assert.True(validity_checker.OperatorCheck(token_list));
         }
 
 
@@ -284,7 +297,8 @@ namespace CalculatorParser.Tests
                 new Token(TokenType.DIVIDE, "/"),
                 new Token(TokenType.NUBER, "20"),
             };
-            Assert.True(ValidityChecker.OperatorCheck(token_list));
+            var validity_checker = new ValidityChecker();
+            Assert.True(validity_checker.OperatorCheck(token_list));
         }
 
         [Fact(DisplayName = "妥当性：20.34")]
@@ -296,7 +310,8 @@ namespace CalculatorParser.Tests
                 new Token(TokenType.NUBER, "34"),
             };
 
-            Assert.True(ValidityChecker.DotCheck(token_list));
+            var validity_checker = new ValidityChecker();
+            Assert.True(validity_checker.DotCheck(token_list));
         }
 
         [Fact(DisplayName = "妥当性：20.*34")]
@@ -309,7 +324,10 @@ namespace CalculatorParser.Tests
                 new Token(TokenType.NUBER, "34"),
             };
 
-            Assert.False(ValidityChecker.DotCheck(token_list));
+            var validity_checker = new ValidityChecker();
+            Assert.False(validity_checker.DotCheck(token_list));
+            Assert.True(validity_checker.ErrorOccurred);
+            Assert.Contains(ValidityError.DOT_INVALID, validity_checker.ErrorList);
         }
     }
 }
