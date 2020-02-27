@@ -361,6 +361,24 @@ namespace CalculatorParser.Tests
 			return parser.Parsing(token_list);
 		}
 
+		private void CheckParse(List<FormulaNode> formula_node, List<FormulaNode> result_node)
+		{
+			var i = 0;
+			foreach (var f in formula_node)
+			{
+				if (f.Type == NodeType.FORMULA)
+				{
+					Assert.Equal(f.Node.Count, result_node[i].Node.Count);
+					CheckParse(f.Node, result_node[i++].Node);
+				}
+				else
+				{
+					Assert.Equal(f.Type.ToString(), result_node[i++].Type.ToString());
+				}
+			}
+		}
+
+
 		[Fact(DisplayName = "20*20-6/2")]
 		public void SimpleParsingTest()
 		{
@@ -386,13 +404,7 @@ namespace CalculatorParser.Tests
 			};
 
 			var formula_node = CheckToen(token_list);
-			Assert.Equal(formula_node[0].Type.ToString(), result_node[0].Type.ToString());	// 20
-			Assert.Equal(formula_node[1].Type.ToString(), result_node[1].Type.ToString());	// *
-			Assert.Equal(formula_node[2].Type.ToString(), result_node[2].Type.ToString());	// (
-			Assert.Equal(formula_node[3].Type.ToString(), result_node[3].Type.ToString());	// /
-			Assert.Equal(formula_node[4].Type.ToString(), result_node[4].Type.ToString());	// 2
-			Assert.Equal(formula_node[5].Type.ToString(), result_node[5].Type.ToString());	// 2
-			Assert.Equal(formula_node[6].Type.ToString(), result_node[6].Type.ToString());	// 2
+			CheckParse(formula_node, result_node);
 		}
 
 		[Fact(DisplayName = "20*(10+5)/2")]
@@ -424,18 +436,8 @@ namespace CalculatorParser.Tests
 				new NumberNode(MakeToken("2")),
 			};
 			var formula_node = CheckToen(token_list);
-
-			Assert.Equal(formula_node[0].Type.ToString(), result_node[0].Type.ToString());	// 20
-			Assert.Equal(formula_node[1].Type.ToString(), result_node[1].Type.ToString());	// *
-			Assert.Equal(formula_node[2].Type.ToString(), result_node[2].Type.ToString());	// (
-			Assert.Equal(formula_node[2].Node.Count, sub_node.Count);	// ノード数
-
-			Assert.Equal(formula_node[2].Node[0].Type.ToString(), sub_node[0].Type.ToString());	// 10
-			Assert.Equal(formula_node[2].Node[1].Type.ToString(), sub_node[1].Type.ToString());	// +
-			Assert.Equal(formula_node[2].Node[2].Type.ToString(), sub_node[2].Type.ToString());	// 5
-
-			Assert.Equal(formula_node[3].Type.ToString(), result_node[3].Type.ToString());	// /
-			Assert.Equal(formula_node[4].Type.ToString(), result_node[4].Type.ToString());	// 2
+			CheckParse(formula_node, result_node);
 		}
+
 	}
 }
