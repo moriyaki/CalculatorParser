@@ -183,28 +183,41 @@ namespace CalculatorParser.Tests
 
 	public class ValidityCheckerTests
 	{
-		private IEnumerable<Token> LeftParam(int number)
-		{
-			return (from i in Enumerable.Range(0, number)
-					select new Token(TokenType.LPARAM, "("));
-		}
 
-		private IEnumerable<Token> RightParam(int number)
+		private Token MakeToken(string oper)
 		{
-			return (from i in Enumerable.Range(0, number)
-					select new Token(TokenType.RPARAM, ")"));
+			switch (oper)
+			{
+				case "+":
+					return new Token(TokenType.PLUS, oper);
+				case "-":
+					return new Token(TokenType.MINUS, oper);
+				case "*":
+					return new Token(TokenType.MULITPLY, oper);
+				case "/":
+					return new Token(TokenType.DIVIDE, oper);
+				case "(":
+					return new Token(TokenType.LPARAM, oper);
+				case ")":
+					return new Token(TokenType.RPARAM, oper);
+				case ".":
+					return new Token(TokenType.DIVIDE, oper);
+				case "":
+					return new Token(TokenType.EOF, oper);
+				default:
+					return new Token(TokenType.NUBER, oper);
+
+			}
 		}
 
 
 		[Fact(DisplayName = "妥当性：()")]
 		public void ValidityParamTest()
 		{
-			var token_list = new List<Token>();
-			token_list.AddRange(LeftParam(2));
-			token_list.AddRange(RightParam(1));
-			token_list.AddRange(LeftParam(1));
-			token_list.AddRange(RightParam(2));
-
+			var token_list = new List<Token>(){
+				MakeToken("("),
+				MakeToken(")"),
+			};
 			var validity_checker = new ValidityChecker();
 			Assert.True(validity_checker.ParamCheck(token_list));
 		}
@@ -212,9 +225,12 @@ namespace CalculatorParser.Tests
 		[Fact(DisplayName = "妥当性：()))")]
 		public void RightParamOverTest()
 		{
-			var token_list = new List<Token>();
-			token_list.AddRange(LeftParam(1));
-			token_list.AddRange(RightParam(3));
+			var token_list = new List<Token>(){
+				MakeToken("("),
+				MakeToken(")"),
+				MakeToken(")"),
+				MakeToken(")"),
+			};
 
 			var validity_checker = new ValidityChecker();
 			Assert.False(validity_checker.ParamCheck(token_list));
@@ -225,9 +241,12 @@ namespace CalculatorParser.Tests
 		[Fact(DisplayName = "妥当性：((()")]
 		public void LeftParamOverTest()
 		{
-			var token_list = new List<Token>();
-			token_list.AddRange(LeftParam(3));
-			token_list.AddRange(RightParam(1));
+			var token_list = new List<Token>(){
+				MakeToken("("),
+				MakeToken("("),
+				MakeToken("("),
+				MakeToken(")"),
+			};
 
 			var validity_checker = new ValidityChecker();
 			Assert.False(validity_checker.ParamCheck(token_list));
@@ -239,8 +258,8 @@ namespace CalculatorParser.Tests
 		public void PlusPlusTest()
 		{
 			var token_list = new List<Token>{
-				new Token(TokenType.PLUS, "+"),
-				new Token(TokenType.PLUS, "+"),
+				MakeToken("+"),
+				MakeToken("+"),
 			};
 			var validity_checker = new ValidityChecker();
 			Assert.False(validity_checker.OperatorCheck(token_list));
@@ -250,8 +269,8 @@ namespace CalculatorParser.Tests
 		public void DuvMulTest()
 		{
 			var token_list = new List<Token>{
-				new Token(TokenType.DIVIDE, "/"),
-				new Token(TokenType.MULITPLY, "*"),
+				MakeToken("/"),
+				MakeToken("*"),
 			};
 			var validity_checker = new ValidityChecker();
 			Assert.False(validity_checker.OperatorCheck(token_list));
@@ -263,9 +282,9 @@ namespace CalculatorParser.Tests
 		public void MulMunusTwentyTest()
 		{
 			var token_list = new List<Token>{
-				new Token(TokenType.MULITPLY, "*"),
-				new Token(TokenType.MINUS, "-"),
-				new Token(TokenType.NUBER, "20"),
+				MakeToken("*"),
+				MakeToken("-"),
+				MakeToken("20"),
 			};
 			var validity_checker = new ValidityChecker();
 			Assert.True(validity_checker.OperatorCheck(token_list));
@@ -275,16 +294,16 @@ namespace CalculatorParser.Tests
 		public void MinusCalcTwentyTest()
 		{
 			var token_list = new List<Token>{
-				new Token(TokenType.NUBER, "20"),
-				new Token(TokenType.MULITPLY, "*"),
-				new Token(TokenType.NUBER, "20"),
-				new Token(TokenType.MULITPLY, "/"),
-				new Token(TokenType.LPARAM, "("),
-				new Token(TokenType.NUBER, "10"),
-				new Token(TokenType.PLUS, "+"),
-				new Token(TokenType.NUBER, "10"),
-				new Token(TokenType.RPARAM, ")"),
-				new Token(TokenType.EOF, ""),
+				MakeToken("20"),
+				MakeToken("*"),
+				MakeToken("20"),
+				MakeToken("/"),
+				MakeToken("("),
+				MakeToken("10"),
+				MakeToken("+"),
+				MakeToken("10"),
+				MakeToken(")"),
+				MakeToken(""),
 			};
 			var validity_checker = new ValidityChecker();
 			Assert.True(validity_checker.OperatorCheck(token_list));
@@ -295,11 +314,11 @@ namespace CalculatorParser.Tests
 		public void MulDivTwentyTest()
 		{
 			var token_list = new List<Token>{
-				new Token(TokenType.NUBER, "20"),
-				new Token(TokenType.MULITPLY, "*"),
-				new Token(TokenType.NUBER, "20"),
-				new Token(TokenType.DIVIDE, "/"),
-				new Token(TokenType.NUBER, "20"),
+				MakeToken("20"),
+				MakeToken("*"),
+				MakeToken("20"),
+				MakeToken("/"),
+				MakeToken("20"),
 			};
 			var validity_checker = new ValidityChecker();
 			Assert.True(validity_checker.OperatorCheck(token_list));
@@ -309,9 +328,9 @@ namespace CalculatorParser.Tests
 		public void DotTrueCheck()
 		{
 			var token_list = new List<Token>{
-				new Token(TokenType.NUBER, "20"),
-				new Token(TokenType.DOT, "."),
-				new Token(TokenType.NUBER, "34"),
+				MakeToken("20"),
+				MakeToken("."),
+				MakeToken("34"),
 			};
 
 			var validity_checker = new ValidityChecker();
@@ -322,10 +341,10 @@ namespace CalculatorParser.Tests
 		public void DotFalseCheck()
 		{
 			var token_list = new List<Token>{
-				new Token(TokenType.NUBER, "20"),
-				new Token(TokenType.DOT, "."),
-				new Token(TokenType.MULITPLY, "*"),
-				new Token(TokenType.NUBER, "34"),
+				MakeToken("20"),
+				MakeToken("."),
+				MakeToken("*"),
+				MakeToken("34"),
 			};
 
 			var validity_checker = new ValidityChecker();
@@ -333,10 +352,7 @@ namespace CalculatorParser.Tests
 			Assert.True(validity_checker.ErrorOccurred);
 			Assert.Contains(ValidityError.DOT_INVALID, validity_checker.ErrorList);
 		}
-	}
 
-	public class CalculatorParserTests
-	{
 		private List<FormulaNode> CheckToen(List<Token> token_list)
 		{
 			var validity_checker = new ValidityChecker();
@@ -349,24 +365,24 @@ namespace CalculatorParser.Tests
 		public void SimpleParsingTest()
 		{
 			var token_list = new List<Token>{
-				new Token(TokenType.NUBER, "20"),
-				new Token(TokenType.MULITPLY, "*"),
-				new Token(TokenType.NUBER, "10"),
-				new Token(TokenType.MINUS, "-"),
-				new Token(TokenType.NUBER, "6"),
-				new Token(TokenType.DIVIDE, "/"),
-				new Token(TokenType.NUBER, "2"),
-				new Token(TokenType.EOF, ""),
+				MakeToken("20"),
+				MakeToken("*"),
+				MakeToken("10"),
+				MakeToken("-"),
+				MakeToken("6"),
+				MakeToken("/"),
+				MakeToken("2"),
+				MakeToken(""),
 			};
 
 			var result_node = new List<FormulaNode>{
-				new NumberNode(new Token(TokenType.NUBER, "20")),
-				new MultiplicatoinNode(new Token(TokenType.MULITPLY, "*")),
-				new NumberNode(new Token(TokenType.NUBER, "10")),
-				new AdditionNode(new Token(TokenType.MINUS, "-")),
-				new NumberNode(new Token(TokenType.NUBER, "6")),
-				new MultiplicatoinNode(new Token(TokenType.DIVIDE, "/")),
-				new NumberNode(new Token(TokenType.NUBER, "2")),
+				new NumberNode(MakeToken("20")),
+				new MultiplicatoinNode(MakeToken("*")),
+				new NumberNode(MakeToken("10")),
+				new AdditionNode(MakeToken("-")),
+				new NumberNode(MakeToken("6")),
+				new MultiplicatoinNode(MakeToken("/")),
+				new NumberNode(MakeToken("2")),
 			};
 
 			var formula_node = CheckToen(token_list);
@@ -383,29 +399,29 @@ namespace CalculatorParser.Tests
 		public void ParamParsingTest()
 		{
 			var token_list = new List<Token>{
-				new Token(TokenType.NUBER, "20"),
-				new Token(TokenType.MULITPLY, "*"),
-				new Token(TokenType.LPARAM, "("),
-				new Token(TokenType.NUBER, "10"),
-				new Token(TokenType.PLUS, "+"),
-				new Token(TokenType.NUBER, "5"),
-				new Token(TokenType.RPARAM, ")"),
-				new Token(TokenType.DIVIDE, "/"),
-				new Token(TokenType.NUBER, "2"),
-				new Token(TokenType.EOF, ""),
+				MakeToken("20"),
+				MakeToken("*"),
+				MakeToken("("),
+				MakeToken("10"),
+				MakeToken("+"),
+				MakeToken("5"),
+				MakeToken(")"),
+				MakeToken("/"),
+				MakeToken("2"),
+				MakeToken(""),
 			};
 			var sub_node = new List<FormulaNode>{
-				new NumberNode(new Token(TokenType.NUBER, "10")),
-				new AdditionNode(new Token(TokenType.PLUS, "+")),
-				new NumberNode(new Token(TokenType.NUBER, "5")),
+				new NumberNode(MakeToken("10")),
+				new AdditionNode(MakeToken("+")),
+				new NumberNode(MakeToken("5")),
 			};
 
 			var result_node = new List<FormulaNode>{
-				new NumberNode(new Token(TokenType.NUBER, "20")),
-				new MultiplicatoinNode(new Token(TokenType.MULITPLY, "*")),
+				new NumberNode(MakeToken("20")),
+				new MultiplicatoinNode(MakeToken("*")),
 				new PriorisedFormulaNode(sub_node),
-				new MultiplicatoinNode(new Token(TokenType.DIVIDE, "/")),
-				new NumberNode(new Token(TokenType.NUBER, "2")),
+				new MultiplicatoinNode(MakeToken("/")),
+				new NumberNode(MakeToken("2")),
 			};
 			var formula_node = CheckToen(token_list);
 
