@@ -201,7 +201,7 @@ namespace CalculatorParser.Tests
 				case ")":
 					return new Token(TokenType.RPARAM, oper);
 				case ".":
-					return new Token(TokenType.DIVIDE, oper);
+					return new Token(TokenType.DOT, oper);
 				case "":
 					return new Token(TokenType.EOF, oper);
 				default:
