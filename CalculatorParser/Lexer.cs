@@ -25,7 +25,7 @@ namespace CalculatorParser
             return number_start.Substring(0, i);
         }
 
-        public IEnumerable<Token> GetToken()
+        public List<Token> GetToken()
         {
             var token_list = new List<Token>();
 

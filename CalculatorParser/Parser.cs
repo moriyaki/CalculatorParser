@@ -4,107 +4,145 @@ using System.Collections.Generic;
 namespace CalculatorParser
 {
 
-    public enum NodeType
-    {
-        FORMULA,            // 括弧演算
-        MULTIPLICATION,     // 乗除算
-        ADDITION,           // 加減算
-        NUMBER,             // 数値
-    }
+	public enum NodeType
+	{
+		FORMULA,            // 括弧演算
+		MULTIPLICATION,     // 乗除算
+		ADDITION,           // 加減算
+		NUMBER,             // 数値
+	}
 
-    // 式ノードクラス
+	// 式ノードクラス
    abstract public class FormulaNode 
-    {
-        public NodeType Type { get; protected set; }
-        public bool Calced { get; protected set; } = false;
-    }
+	{
+		public NodeType Type { get; protected set; }
+		public bool Calced { get; protected set; } = false;
+		public List<FormulaNode> Node { get; protected set; }
+	}
 
-    // 括弧演算クラス
-    public class PriorisedFormulaNode : FormulaNode
-    {
-        public List<FormulaNode> Node { get; private set; }
+	// 括弧演算クラス
+	public class PriorisedFormulaNode : FormulaNode
+	{
 
-        public PriorisedFormulaNode(List<FormulaNode> _node)
-        {
-            Node = _node;
-            Type = NodeType.FORMULA;
-        }
+		public PriorisedFormulaNode(List<FormulaNode> _node)
+		{
+			Node = _node;
+			Type = NodeType.FORMULA;
+		}
 
-        public override string ToString()
-        {
-            return "";
-        }
-    }
+		public override string ToString()
+		{
+			return "(";
+		}
+	}
 
-    // 乗除算ノードクラス
-    public class MultiplicatoinNode : FormulaNode
-    {
-        public Token Operator { get; private set; }
+	// 乗除算ノードクラス
+	public class MultiplicatoinNode : FormulaNode
+	{
+		public Token Operator { get; private set; }
 
-        public MultiplicatoinNode(Token _operator) 
-        {
-            Operator = _operator;
-            Type = NodeType.MULTIPLICATION;
-        }
+		public MultiplicatoinNode(Token _operator) 
+		{
+			Node = null;
+			Operator = _operator;
+			Type = NodeType.MULTIPLICATION;
+		}
 
-        public override string ToString()
-        {
-            return Operator.Literal;
-        }
-    }
+		public override string ToString()
+		{
+			return Operator.Literal;
+		}
+	}
 
-    // 加減算クラス
-    public class AdditionNode : FormulaNode 
-    {
-        public Token Operator { get; private set; }
+	// 加減算クラス
+	public class AdditionNode : FormulaNode 
+	{
+		public Token Operator { get; private set; }
 
-        public AdditionNode(Token _operator)
-        {
-            Operator = _operator;
-            Type = NodeType.MULTIPLICATION;
-        }
+		public AdditionNode(Token _operator)
+		{
+			Node = null;
+			Operator = _operator;
+			Type = NodeType.ADDITION;
+		}
 
-        public override string ToString()
-        {
-            return Operator.Literal;
-        }
+		public override string ToString()
+		{
+			return Operator.Literal;
+		}
 
-    }
+	}
 
-    // 数値クラス
-    public class NumberNode : FormulaNode
-    {
-        public int Number { get; private set; }
+	// 数値クラス
+	public class NumberNode : FormulaNode
+	{
+		public int Number { get; private set; }
 
-        public NumberNode(int _number) 
-        {
-            Number = _number;
-            Type = NodeType.NUMBER;
-        }
+		public NumberNode(Token _number) 
+		{
+			Node = null;
+			Number = int.Parse(_number.Literal);
+			Type = NodeType.NUMBER;
+		}
 
-        public override string ToString()
-        {
-            return Number.ToString();
-        }
+		public override string ToString()
+		{
+			return Number.ToString();
+		}
 
-    }
+	}
 
-    public class Parser
-    {
-        public TokenType Type;
-        public List<FormulaNode> nodes = null;
+	public class Parser
+	{
+		private int index = 0;
 
+		/// <summary>
+		/// 構文解析して構文木を生成する
+		/// 前提条件：ValidityCheckerを通してエラーが無いこと
+		/// </summary>
+		/// <param name="token">解析するToken</param>
+		/// <returns></returns>
+		public List<FormulaNode> Parsing(List<Token> token) 
+		{
+			var formula_node = new List<FormulaNode>();
 
-
-        public bool Parse(List<Token> token) 
-        {
-            // tokenListすべてを検索
-                // 数値なら数値ノードの追加
-                // LPARAM'('なら Parse を再帰読み出し
-                // RPARAM')'なら 再帰呼び出しから抜ける
-                // 演算子なら演算子ノードを追加
-
-            return false;
-        }
-    }
+			// tokenListすべてを検索
+			for (var p = index; p < token.Count; p++)
+			{
+				switch (token[p].Type)
+				{
+					// 左括弧なら
+					case TokenType.LPARAM:
+						index = p + 1;	// '(' の次場所を保存、再帰で利用
+						formula_node.Add(new PriorisedFormulaNode(Parsing(token)));
+						p = index;	// ')' の後に移動
+						break;
+					// 右括弧なら
+					case TokenType.RPARAM:
+						index = p;	// 現在位置を保存
+						return formula_node;
+					// 演算子なら
+					case TokenType.MULITPLY:
+					case TokenType.DIVIDE:
+						formula_node.Add(new MultiplicatoinNode(token[p]));
+						break;
+					case TokenType.PLUS:
+					case TokenType.MINUS:
+						formula_node.Add(new AdditionNode(token[p]));
+						break;
+					// 数値なら
+					case TokenType.NUBER:
+						formula_node.Add(new NumberNode(token[p]));
+						break;
+					case TokenType.EOF:
+						return formula_node;
+					// ILLEGAL,UNKNOWNは不正
+					default:
+						return null;
+				}
+			}
+			// TokenType.EOF で終わってなかったら不正
+			return null;
+		}
+	}
 }
