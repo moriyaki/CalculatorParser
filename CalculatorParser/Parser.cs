@@ -1,13 +1,14 @@
+using Microsoft.VisualBasic.CompilerServices;
 using System;
 using System.Collections.Generic;
 
 namespace CalculatorParser
 {
-
 	public enum NodeType
 	{
 		FORMULA,            // 括弧演算
 		MULTIPLICATION,     // 乗除算
+		DOT,				// 小数点
 		ADDITION,           // 加減算
 		NUMBER,             // 数値
 	}
@@ -70,8 +71,26 @@ namespace CalculatorParser
 		{
 			return Operator.Literal;
 		}
-
 	}
+
+	// 小数点
+	public class DotNode : FormulaNode
+	{
+		public Token Operator { get; private set; }
+
+		public DotNode(Token _operator)
+		{
+			Node = null;
+			Operator = _operator;
+			Type = NodeType.DOT;
+		}
+
+		public override string ToString()
+		{
+			return Operator.Literal;
+		}
+	}
+
 
 	// 数値クラス
 	public class NumberNode : FormulaNode

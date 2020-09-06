@@ -16,7 +16,10 @@ namespace CalculatorParser
 		DOT_INVALID,
 	}
 
-
+    /// <summary>
+    /// TOKENリストの妥当性をチェックする
+    /// ( や ) の過不足、演算子の連続など
+    /// </summary>
 	public class ValidityChecker
 	{
 		public bool ErrorOccurred { get; private set; } = false;
@@ -81,6 +84,18 @@ namespace CalculatorParser
 
 		}
 
+		private bool IsNormalOperator(Token token)
+		{
+			switch(token.Type)
+			{
+				case TokenType.PLUS:
+				case TokenType.MULITPLY:
+				case TokenType.DIVIDE:
+					return true;
+				default:
+					return false;
+			}
+		}
 
 		/// <summary>
 		/// 演算子が続いていないか、続いていても2つ目がマイナス、かつ続くのが数値ならOK
@@ -91,38 +106,36 @@ namespace CalculatorParser
 		{
 			for (var i = 0; i < token.Count; i++)
 			{
-				switch (token[i].Type)
+				// 四則演算の演算子か
+				if (IsNormalOperator(token[i]) || token[i].Type == TokenType.MINUS)
 				{
-					case TokenType.PLUS:
-					case TokenType.MINUS:
-					case TokenType.MULITPLY:
-					case TokenType.DIVIDE:
+					i++;
+					if (i == token.Count)
+					{
+						// 演算子で終了してたらエラー
+						ErrorRegist(error: ValidityError.OPERATOR_INVALID);
+						return false;
+					}
+					if (IsNormalOperator(token[i]))
+					{
+						// マイナス以外の演算子が続いていたらエラー
+						ErrorRegist(error: ValidityError.OPERATOR_INVALID);
+						return false;
+					}
+					else if (token[i].Type == TokenType.MINUS)
+					{
 						i++;
+						// 演算子 + '-' で終了してたらエラー
 						if (i == token.Count)
 						{
 							ErrorRegist(error: ValidityError.OPERATOR_INVALID);
 							return false;
 						}
-						// 次のTokenが演算子(非MINUS)か
-						switch (token[i].Type)
-						{
-							case TokenType.PLUS:
-							case TokenType.MULITPLY:
-							case TokenType.DIVIDE:
-								ErrorRegist(error: ValidityError.OPERATOR_INVALID);
-								return false;
-							case TokenType.MINUS:
-								i++;
-								if (i == token.Count)
-								{
-									ErrorRegist(error: ValidityError.OPERATOR_INVALID);
-									return false;
-								}
-								// 演算子 + '-' + 数値なら負の数
-								if (token[i].Type != TokenType.NUBER) return false;
-								break;
-						}
-						break;
+
+						// 演算子 + '-' の次が数値でなければエラー
+						if (token[i].Type != TokenType.NUBER) return false;
+
+					}
 				}
 			}
 			return true;
