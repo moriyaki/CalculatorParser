@@ -24,9 +24,9 @@ namespace CalculatorParser
 		DOT,
 	}
 
-    /// <summary>
-    /// 
-    /// </summary>
+	/// <summary>
+	/// 文字とTokenTypeの対応
+	/// </summary>
 	public class Token
 	{
 		public TokenType Type { get; set; }
@@ -40,7 +40,7 @@ namespace CalculatorParser
 
 		public static TokenType LookupOperators(char c)
 		{
-			var Operators = new Dictionary<char, TokenType>
+			var Operators = new Dictionary<char, TokenType>(10)
 			{
 				['('] = TokenType.LPARAM,
 				[')'] = TokenType.RPARAM,
@@ -51,9 +51,9 @@ namespace CalculatorParser
 				['.'] = TokenType.DOT,
 			};
 
-			if (Operators.ContainsKey(c))
+			if (Operators.TryGetValue(c, out var value))
 			{
-				return Operators[c];
+				return value;
 			}
 			return TokenType.UNKNOWN;
 		}

@@ -13,13 +13,13 @@ using System;
 
 namespace CalculatorParser
 {
-	class Program
+	static class Program
 	{
 		static void Main()//string[] args)
 		{
 			Console.WriteLine("CalculatorParser");
 
-			var formula = "20*20";
+			string formula = NewMethod();
 			var lexer = new Lexer(formula);
 			var token = lexer.GetToken();
 			var vc = new ValidityChecker();
@@ -34,6 +34,11 @@ namespace CalculatorParser
 			var parser = new Parser();
 			parser.Parsing(token);
 
+		}
+
+		private static string NewMethod()
+		{
+			return "20*20";
 		}
 	}
 

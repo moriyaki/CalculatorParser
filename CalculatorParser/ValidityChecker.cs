@@ -16,10 +16,10 @@ namespace CalculatorParser
 		DOT_INVALID,
 	}
 
-    /// <summary>
-    /// TOKENリストの妥当性をチェックする
-    /// ( や ) の過不足、演算子の連続など
-    /// </summary>
+	/// <summary>
+	/// TOKENリストの妥当性をチェックする
+	/// ( や ) の過不足、演算子の連続など
+	/// </summary>
 	public class ValidityChecker
 	{
 		public bool ErrorOccurred { get; private set; } = false;
@@ -84,7 +84,7 @@ namespace CalculatorParser
 
 		}
 
-		private bool IsNormalOperator(Token token)
+		private static bool IsNormalOperator(Token token)
 		{
 			switch(token.Type)
 			{
