@@ -17,7 +17,7 @@ namespace CalculatorParser.Tests
 		/// </summary>
 		/// <param name="formula">数式テキスト</param>
 		/// <param name="token_type_array">期待するTokenリスト</param>
-		private void TokenCheck(string formula, TokenType[] token_type_array)
+		private static void TokenCheck(string formula, TokenType[] token_type_array)
 		{
 			var lexer = new Lexer(formula);
 			var token = lexer.GetToken();
@@ -27,7 +27,6 @@ namespace CalculatorParser.Tests
 				Assert.Equal(t.Type, token_type_array[i++]);
 			}
 		}
-		
 
 		/// <summary>
 		/// 演算子のTokenが正しく取得されているか検証
@@ -35,7 +34,7 @@ namespace CalculatorParser.Tests
 		[Fact(DisplayName = "演算子")]
 		public void GetTokenOperatorTest()
 		{
-			var formula = "+-*/().";
+			const string formula = "+-*/().";
 			var token_type_array = new TokenType[]
 			{
 				TokenType.PLUS,
@@ -57,7 +56,7 @@ namespace CalculatorParser.Tests
 		[Fact(DisplayName = "数値")]
 		public void GetTokenNumbertest()
 		{
-			var formula = "0123456789";
+			const string formula = "0123456789";
 			var token_type_array = new TokenType[]
 			{
 				TokenType.NUBER,
@@ -73,7 +72,7 @@ namespace CalculatorParser.Tests
 		[Fact(DisplayName = "2+3")]
 		public void GetTokenTest1()
 		{
-			var formula = "2+3";
+			const string formula = "2+3";
 
 			var token_type_array = new TokenType[]
 			{
@@ -93,7 +92,7 @@ namespace CalculatorParser.Tests
 		[Fact(DisplayName = "2+((1+2)*3+(4/8))")]
 		public void GetTokenTest2()
 		{
-			var formula = "2+((1+2)*3+(4/8))";
+			const string formula = "2+((1+2)*3+(4/8))";
 
 			var token_type_array = new TokenType[]
 			{
@@ -132,7 +131,7 @@ namespace CalculatorParser.Tests
 		[Fact(DisplayName = "22314+((1066+2256)*3.948+(42658/8587))")]
 		public void GetTokenTest3()
 		{
-			var formula = "22314+((1066+2256)*3.948+(42658/8587))";
+			const string formula = "22314+((1066+2256)*3.948+(42658/8587))";
 
 			var token_type_array = new TokenType[]
 			{
@@ -173,7 +172,7 @@ namespace CalculatorParser.Tests
 		[Fact(DisplayName="231 +(9832*6232/ (1230-777))-21001")]
 		public void GetTokenTest4()
 		{
-			var formula = "231 +(9832*6232/ (1230-777))-21001";
+			const string  formula = "231 +(9832*6232/ (1230-777))-21001";
 
 			var token_type_array = new TokenType[]
 			{
@@ -214,30 +213,20 @@ namespace CalculatorParser.Tests
 		/// </summary>
 		/// <param name="oper">Tokenを取得したい値</param>
 		/// <returns>Token</returns>
-		private Token MakeToken(string oper)
+		private static Token MakeToken(string oper)
 		{
-			switch (oper)
+			return oper switch
 			{
-				case "+":
-					return new Token(TokenType.PLUS, oper);
-				case "-":
-					return new Token(TokenType.MINUS, oper);
-				case "*":
-					return new Token(TokenType.MULITPLY, oper);
-				case "/":
-					return new Token(TokenType.DIVIDE, oper);
-				case "(":
-					return new Token(TokenType.LPARAM, oper);
-				case ")":
-					return new Token(TokenType.RPARAM, oper);
-				case ".":
-					return new Token(TokenType.DOT, oper);
-				case "":
-					return new Token(TokenType.EOF, oper);
-				default:
-					return new Token(TokenType.NUBER, oper);
-
-			}
+				"+" => new Token(TokenType.PLUS, oper),
+				"-" => new Token(TokenType.MINUS, oper),
+				"*" => new Token(TokenType.MULITPLY, oper),
+				"/" => new Token(TokenType.DIVIDE, oper),
+				"(" => new Token(TokenType.LPARAM, oper),
+				")" => new Token(TokenType.RPARAM, oper),
+				"." => new Token(TokenType.DOT, oper),
+				"" => new Token(TokenType.EOF, oper),
+				_ => new Token(TokenType.NUBER, oper),
+			};
 		}
 
 		/// <summary>
@@ -246,10 +235,12 @@ namespace CalculatorParser.Tests
 		[Fact(DisplayName = "妥当性：()")]
 		public void ValidityParamTest()
 		{
-			var token_list = new List<Token>(){
+			var token_list = new List<Token>(10)
+			{
 				MakeToken("("),
-				MakeToken(")"),
+				MakeToken(")")
 			};
+
 			var validity_checker = new ValidityChecker();
 			// 括弧は適切に閉じているので True 期待
 			Assert.True(validity_checker.ParamCheck(token_list));
@@ -263,7 +254,8 @@ namespace CalculatorParser.Tests
 		[Fact(DisplayName = "妥当性：()))")]
 		public void RightParamOverTest()
 		{
-			var token_list = new List<Token>(){
+			var token_list = new List<Token>(10)
+			{
 				MakeToken("("),
 				MakeToken(")"),
 				MakeToken(")"),
@@ -285,7 +277,8 @@ namespace CalculatorParser.Tests
 		[Fact(DisplayName = "妥当性：((()")]
 		public void LeftParamOverTest()
 		{
-			var token_list = new List<Token>(){
+			var token_list = new List<Token>(10)
+			{
 				MakeToken("("),
 				MakeToken("("),
 				MakeToken("("),
@@ -307,7 +300,8 @@ namespace CalculatorParser.Tests
 		[Fact(DisplayName = "妥当性：++")]
 		public void PlusPlusTest()
 		{
-			var token_list = new List<Token>{
+			var token_list = new List<Token>(10)
+			{
 				MakeToken("+"),
 				MakeToken("+"),
 			};
@@ -326,7 +320,8 @@ namespace CalculatorParser.Tests
 		[Fact(DisplayName = "妥当性：/*")]
 		public void DuvMulTest()
 		{
-			var token_list = new List<Token>{
+			var token_list = new List<Token>(10)
+			{
 				MakeToken("/"),
 				MakeToken("*"),
 			};
@@ -345,7 +340,8 @@ namespace CalculatorParser.Tests
 		[Fact(DisplayName = "妥当性：*-20")]
 		public void MulMunusTwentyTest()
 		{
-			var token_list = new List<Token>{
+			var token_list = new List<Token>(10)
+			{
 				MakeToken("*"),
 				MakeToken("-"),
 				MakeToken("20"),
@@ -361,7 +357,8 @@ namespace CalculatorParser.Tests
 		[Fact(DisplayName = "妥当性：20*20/(10+10)")]
 		public void MinusCalcTwentyTest()
 		{
-			var token_list = new List<Token>{
+			var token_list = new List<Token>(30)
+			{
 				MakeToken("20"),
 				MakeToken("*"),
 				MakeToken("20"),
@@ -384,7 +381,8 @@ namespace CalculatorParser.Tests
 		[Fact(DisplayName = "妥当性：20*20/20")]
 		public void MulDivTwentyTest()
 		{
-			var token_list = new List<Token>{
+			var token_list = new List<Token>(10)
+			{
 				MakeToken("20"),
 				MakeToken("*"),
 				MakeToken("20"),
@@ -402,7 +400,8 @@ namespace CalculatorParser.Tests
 		[Fact(DisplayName = "妥当性：20.34")]
 		public void DotTrueCheck()
 		{
-			var token_list = new List<Token>{
+			var token_list = new List<Token>(10)
+			{
 				MakeToken("20"),
 				MakeToken("."),
 				MakeToken("34"),
@@ -419,7 +418,8 @@ namespace CalculatorParser.Tests
 		[Fact(DisplayName = "妥当性：20.*34")]
 		public void DotFalseCheck()
 		{
-			var token_list = new List<Token>{
+			var token_list = new List<Token>(10)
+			{
 				MakeToken("20"),
 				MakeToken("."),
 				MakeToken("*"),
@@ -438,23 +438,18 @@ namespace CalculatorParser.Tests
 
 	public class ParseTests
 	{
-		private FormulaNode GetFormulaNode(string oper)
+		// 演算子や数値からノード取得
+		private static FormulaNode GetFormulaNode(string oper)
 		{
-			switch (oper) {
-				case "+":
-					return new AdditionNode(new Token(TokenType.PLUS, oper));
-				case "-":
-					return new AdditionNode(new Token(TokenType.MINUS, oper));
-				case "*":
-					return new MultiplicatoinNode(new Token(TokenType.MULITPLY, oper));
-				case "/":
-					return new MultiplicatoinNode(new Token(TokenType.DIVIDE, oper));
-				case ".":
-					return new DotNode(new Token(TokenType.DOT, oper));
-				default:
-					return new NumberNode(new Token(TokenType.NUBER, oper));
-
-			}
+			return oper switch
+			{
+				"+" => new AdditionNode(new Token(TokenType.PLUS, oper)),
+				"-" => new AdditionNode(new Token(TokenType.MINUS, oper)),
+				"*" => new MultiplicatoinNode(new Token(TokenType.MULITPLY, oper)),
+				"/" => new MultiplicatoinNode(new Token(TokenType.DIVIDE, oper)),
+				"." => new DotNode(new Token(TokenType.DOT, oper)),
+				_ => new NumberNode(new Token(TokenType.NUBER, oper)),
+			};
 		}
 
 		/// <summary>
@@ -462,7 +457,7 @@ namespace CalculatorParser.Tests
 		/// </summary>
 		/// <param name="formula">数式</param>
 		/// <returns>構文木</returns>
-		private List<FormulaNode> GetFormlaNode(string formula)
+		private static List<FormulaNode> GetFormlaNode(string formula)
 			{
 			// 数式を字句解析にかけて正当性チェック
 			var lexer = new Lexer(formula);
@@ -481,7 +476,7 @@ namespace CalculatorParser.Tests
 		/// </summary>
 		/// <param name="formula_node">取得した構文木</param>
 		/// <param name="result_node">期待する構文木</param>
-		private void CheckParse(List<FormulaNode> formula_node, List<FormulaNode> result_node)
+		private static void CheckParse(List<FormulaNode> formula_node, List<FormulaNode> result_node)
 		{
 			var i = 0;
 			foreach (var f in formula_node)
@@ -504,7 +499,8 @@ namespace CalculatorParser.Tests
 		public void SimpleParsingTest()
 		{
 			// 期待する構文木
-			var result_node = new List<FormulaNode>{
+			var result_node = new List<FormulaNode>(30)
+			{
 				GetFormulaNode("20"),
 				GetFormulaNode("*"),
 				GetFormulaNode("20"),
@@ -524,14 +520,16 @@ namespace CalculatorParser.Tests
 		public void ParamParsingTest()
 		{
 			// 括弧 (10+5) の中の構文木
-			var child_node = new List<FormulaNode>{
+			var child_node = new List<FormulaNode>(10)
+			{
 				GetFormulaNode("10"),
 				GetFormulaNode("+"),
 				GetFormulaNode("5"),
 			};
 
 			// 期待する構文木
-			var result_node = new List<FormulaNode>{
+			var result_node = new List<FormulaNode>(10)
+			{
 				GetFormulaNode("20"),
 				GetFormulaNode("*"),
 				new PriorisedFormulaNode(child_node),
@@ -549,28 +547,31 @@ namespace CalculatorParser.Tests
 		public void DoubleParsingTest()
 		{
 			// 1つめの括弧 (24-9) の中の構文木
-			var first_childnode = new List<FormulaNode>{
+			var first_childnode = new List<FormulaNode>(5)
+			{
 				GetFormulaNode("24"),
 				GetFormulaNode("-"),
 				GetFormulaNode("9"),
 			};
 
 			// 2つめの括弧 ((10+5)/2) の内側 (10+5) の構文木
-			var second_grand_childnode = new List<FormulaNode>{
+			var second_grand_childnode = new List<FormulaNode>(5)
+			{
 				GetFormulaNode("10"),
 				GetFormulaNode("+"),
 				GetFormulaNode("5"),
 			};
 
 			// 2つめの括弧 ((10+5)/2) の構文木
-			var second_childnode = new List<FormulaNode>{
+			var second_childnode = new List<FormulaNode>(5)
+			{
 				new PriorisedFormulaNode(second_grand_childnode),
 				GetFormulaNode("/"),
 				GetFormulaNode("2"),
 			};
 
 			// 期待する構文木
-			var result_node = new List<FormulaNode>{
+			var result_node = new List<FormulaNode>(5){
 				new PriorisedFormulaNode(first_childnode),
 				GetFormulaNode("+"),
 				new PriorisedFormulaNode(second_childnode),

@@ -123,7 +123,7 @@ namespace CalculatorParser
 		/// <returns></returns>
 		public List<FormulaNode> Parsing(List<Token> token) 
 		{
-			var formula_node = new List<FormulaNode>();
+			var formula_node = new List<FormulaNode>(token.Count * 2);
 
 			// tokenListすべてを検索
 			for (var p = index; p < token.Count; p++)

@@ -15,7 +15,7 @@ namespace CalculatorParser
             LexInput = _lex_input;
         }
 
-        private string GetNumber(string number_start)
+        private static string GetNumber(string number_start)
         {
             var i = 0;
             while (i < number_start.Length && char.IsDigit(number_start[i]))
@@ -27,7 +27,7 @@ namespace CalculatorParser
 
         public List<Token> GetToken()
         {
-            var token_list = new List<Token>();
+            var token_list = new List<Token>(LexInput.Length * 2);
 
             for (var i = 0; i < LexInput.Length; i++)
             {
