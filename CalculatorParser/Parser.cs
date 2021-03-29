@@ -70,6 +70,8 @@ namespace CalculatorParser
 		{
 			return Operator.Literal;
 		}
+
+
 	}
 
 	// 小数点
@@ -90,22 +92,95 @@ namespace CalculatorParser
 		}
 	}
 
-
 	// 数値クラス
 	public class NumberNode : FormulaNode
 	{
 		public int Number { get; private set; }
+		public int DecimalNumber { get; private set; }
 
-		public NumberNode(Token _number) 
+		public NumberNode(Token _number, Token _decimal = null) 
 		{
 			Node = null;
 			Number = int.Parse(_number.Literal);
+
+			if (_decimal == null)
+			{
+				DecimalNumber = 0;
+			}
+			else
+			{
+				DecimalNumber = int.Parse(_decimal.Literal);
+			}
 			Type = NodeType.NUMBER;
 		}
 
 		public override string ToString()
 		{
 			return Number.ToString();
+		}
+
+		public static NumberNode operator+(NumberNode a, NumberNode b)
+		{
+			if (a.DecimalNumber == 0 && b.DecimalNumber == 0)
+			{
+				return new NumberNode(
+					new Token(
+						TokenType.NUBER,
+						(a.Number + b.Number).ToString()));
+			}
+			else
+			{
+				// TODO:小数点の実装
+				return null;
+			}
+		}
+
+		public static NumberNode operator-(NumberNode a, NumberNode b)
+		{
+			if (a.DecimalNumber == 0 && b.DecimalNumber == 0)
+			{
+				return new NumberNode(
+					new Token(
+						TokenType.NUBER,
+						(a.Number - b.Number).ToString()));
+			}
+			else
+			{
+				// TODO:小数点の実装
+				return null;
+			}
+		}
+
+		public static NumberNode operator*(NumberNode a, NumberNode b)
+		{
+			if (a.DecimalNumber == 0 && b.DecimalNumber == 0)
+			{
+				return new NumberNode(
+					new Token(
+						TokenType.NUBER,
+						(a.Number * b.Number).ToString()));
+			}
+			else
+			{
+				// TODO:小数点の実装
+				return null;
+			}
+		}
+
+		public static NumberNode operator/(NumberNode a, NumberNode b)
+		{
+			if (a.DecimalNumber == 0 && b.DecimalNumber == 0)
+			{
+				return new NumberNode(
+					new Token(
+						TokenType.NUBER,
+						(a.Number / b.Number).ToString()));
+			}
+			else
+			{
+				// TODO:小数点の実装
+				return null;
+			}
 		}
 
 	}
@@ -122,6 +197,12 @@ namespace CalculatorParser
 		/// <returns></returns>
 		public List<FormulaNode> Parsing(List<Token> token) 
 		{
+			var validity_checker = new ValidityChecker();
+			if (!validity_checker.ValidityCheck(token))
+			{
+				throw new Exception("Validity Error");
+			}
+
 			var formula_node = new List<FormulaNode>(token.Count * 2);
 
 			// tokenListすべてを検索
@@ -139,11 +220,12 @@ namespace CalculatorParser
 					case TokenType.RPARAM:
 						index = p;	// 現在位置を保存
 						return formula_node;
-					// 演算子なら
+					// 乗除演算子なら
 					case TokenType.MULITPLY:
 					case TokenType.DIVIDE:
 						formula_node.Add(new MultiplicatoinNode(token[p]));
 						break;
+					// 加減演算子なら
 					case TokenType.PLUS:
 					case TokenType.MINUS:
 						formula_node.Add(new AdditionNode(token[p]));

@@ -2,10 +2,9 @@ using System.Collections.Generic;
 
 namespace CalculatorParser
 {
-    /*
-     * Lexer.cs
-     * 字句解析クラス、文法についてはチェックしない
-     */
+    /// <summary>
+    /// 字句解析クラス、文法についてはチェックしない
+    /// </summary>
     public class Lexer
     {
         public string LexInput { get; private set; }

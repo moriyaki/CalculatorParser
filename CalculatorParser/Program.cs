@@ -22,23 +22,17 @@ namespace CalculatorParser
 			string formula = NewMethod();
 			var lexer = new Lexer(formula);
 			var token = lexer.GetToken();
-			var vc = new ValidityChecker();
-			if (!vc.ValidityCheck(token))
-			{
-				foreach (var e in vc.ErrorList)
-				{
-					Console.WriteLine(vc.ErrorMessage[e]);
-				}
-				return;
-			}
 			var parser = new Parser();
-			parser.Parsing(token);
+			var syntax_tree = parser.Parsing(token);
+
+			var result = Calculator.Caluculate(syntax_tree);
+			Console.WriteLine($"{NewMethod()} = {result}");
 
 		}
 
 		private static string NewMethod()
 		{
-			return "20*20";
+			return "1+1+2";
 		}
 	}
 

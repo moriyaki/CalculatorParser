@@ -436,10 +436,10 @@ namespace CalculatorParser.Tests
 		}
 	}
 
-	public class ParseTests
+	public static class FormulaNodeCommon
 	{
 		// 演算子や数値からノード取得
-		private static FormulaNode GetFormulaNode(string oper)
+		public static FormulaNode GetFormulaNode(string oper)
 		{
 			return oper switch
 			{
@@ -457,19 +457,22 @@ namespace CalculatorParser.Tests
 		/// </summary>
 		/// <param name="formula">数式</param>
 		/// <returns>構文木</returns>
-		private static List<FormulaNode> GetFormlaNode(string formula)
+		public static List<FormulaNode> GetSyntaxTree(string formula)
 			{
 			// 数式を字句解析にかけて正当性チェック
 			var lexer = new Lexer(formula);
+			// 字句解析後、トークナイズする
 			var token_list = lexer.GetToken();
-			var validity_checker = new ValidityChecker();
-			Assert.True(validity_checker.ValidityCheck(token_list));
 
 			// 構文木取得
 			var parser = new Parser();
 			return parser.Parsing(token_list);
 
 		}
+	}
+
+	public class ParseTests
+	{
 
 		/// <summary>
 		/// 構文木が正しく展開されているか比較検証
@@ -501,19 +504,19 @@ namespace CalculatorParser.Tests
 			// 期待する構文木
 			var result_node = new List<FormulaNode>(30)
 			{
-				GetFormulaNode("20"),
-				GetFormulaNode("*"),
-				GetFormulaNode("20"),
-				GetFormulaNode("-"),
-				GetFormulaNode("6"),
-				GetFormulaNode("/"),
-				GetFormulaNode("2")
+				FormulaNodeCommon.GetFormulaNode("20"),
+				FormulaNodeCommon.GetFormulaNode("*"),
+				FormulaNodeCommon.GetFormulaNode("20"),
+				FormulaNodeCommon.GetFormulaNode("-"),
+				FormulaNodeCommon.GetFormulaNode("6"),
+				FormulaNodeCommon.GetFormulaNode("/"),
+				FormulaNodeCommon.GetFormulaNode("2")
 			};
 
 			// 数式から構文木を取得
-			var formula_node = GetFormlaNode("20*20-6/2");
+			var syntax_tree = FormulaNodeCommon.GetSyntaxTree("20*20-6/2");
 			// 取得した構文木が期待通りか検証
-			CheckParse(formula_node, result_node);
+			CheckParse(syntax_tree, result_node);
 		}
 
 		[Fact(DisplayName = "20*(10+5)/2")]
@@ -522,25 +525,25 @@ namespace CalculatorParser.Tests
 			// 括弧 (10+5) の中の構文木
 			var child_node = new List<FormulaNode>(10)
 			{
-				GetFormulaNode("10"),
-				GetFormulaNode("+"),
-				GetFormulaNode("5"),
+				FormulaNodeCommon.GetFormulaNode("10"),
+				FormulaNodeCommon.GetFormulaNode("+"),
+				FormulaNodeCommon.GetFormulaNode("5"),
 			};
 
 			// 期待する構文木
 			var result_node = new List<FormulaNode>(10)
 			{
-				GetFormulaNode("20"),
-				GetFormulaNode("*"),
+				FormulaNodeCommon.GetFormulaNode("20"),
+				FormulaNodeCommon.GetFormulaNode("*"),
 				new PriorisedFormulaNode(child_node),
-				GetFormulaNode("/"),
-				GetFormulaNode("2"),
+				FormulaNodeCommon.GetFormulaNode("/"),
+				FormulaNodeCommon.GetFormulaNode("2"),
 			};
 
 			// 数式から構文木を取得
-			var formula_node = GetFormlaNode("20*(10+5)/2");
+			var syntax_tree = FormulaNodeCommon.GetSyntaxTree("20*(10+5)/2");
 			// 取得した構文木が期待通りか検証
-			CheckParse(formula_node, result_node);
+			CheckParse(syntax_tree, result_node);
 		}
 
 		[Fact(DisplayName = "(24-9)+((10+5)/2)")]
@@ -549,40 +552,115 @@ namespace CalculatorParser.Tests
 			// 1つめの括弧 (24-9) の中の構文木
 			var first_childnode = new List<FormulaNode>(5)
 			{
-				GetFormulaNode("24"),
-				GetFormulaNode("-"),
-				GetFormulaNode("9"),
+				FormulaNodeCommon.GetFormulaNode("24"),
+				FormulaNodeCommon.GetFormulaNode("-"),
+				FormulaNodeCommon.GetFormulaNode("9"),
 			};
 
 			// 2つめの括弧 ((10+5)/2) の内側 (10+5) の構文木
 			var second_grand_childnode = new List<FormulaNode>(5)
 			{
-				GetFormulaNode("10"),
-				GetFormulaNode("+"),
-				GetFormulaNode("5"),
+				FormulaNodeCommon.GetFormulaNode("10"),
+				FormulaNodeCommon.GetFormulaNode("+"),
+				FormulaNodeCommon.GetFormulaNode("5"),
 			};
 
 			// 2つめの括弧 ((10+5)/2) の構文木
 			var second_childnode = new List<FormulaNode>(5)
 			{
 				new PriorisedFormulaNode(second_grand_childnode),
-				GetFormulaNode("/"),
-				GetFormulaNode("2"),
+				FormulaNodeCommon.GetFormulaNode("/"),
+				FormulaNodeCommon.GetFormulaNode("2"),
 			};
 
 			// 期待する構文木
 			var result_node = new List<FormulaNode>(5){
 				new PriorisedFormulaNode(first_childnode),
-				GetFormulaNode("+"),
+				FormulaNodeCommon.GetFormulaNode("+"),
 				new PriorisedFormulaNode(second_childnode),
 			};
 
 			// 数式から構文木を取得
-			var formula_node = GetFormlaNode("(24-9)+((10+5)/2)");
+			var syntax_tree = FormulaNodeCommon.GetSyntaxTree("(24-9)+((10+5)/2)");
 			// 取得した構文木が期待通りか検証
-			CheckParse(formula_node, result_node);
+			CheckParse(syntax_tree, result_node);
+		}
+	}
+
+	public class CalculateTests
+	{
+		[Fact(DisplayName = "1+1")]
+		public void OnePlusOneTest()
+		{
+			var syntax_tree = FormulaNodeCommon.GetSyntaxTree("1+1");
+			var result = Calculator.Caluculate(syntax_tree);
+			Assert.Equal("2", result);
 		}
 
+		[Fact(DisplayName = "1+2+3")]
+		public void OnePlusTwoPlusThreeTest()
+		{
+			var syntax_tree = FormulaNodeCommon.GetSyntaxTree("1+2+3");
+			var result = Calculator.Caluculate(syntax_tree);
+			Assert.Equal("6", result);
+		}
+
+		[Fact(DisplayName = "27+72")]
+		public void DoublleDigitsPlusTest()
+		{
+			var syntax_tree = FormulaNodeCommon.GetSyntaxTree("27+72");
+			var result = Calculator.Caluculate(syntax_tree);
+			Assert.Equal("99", result);
+		}
+
+
+		[Fact(DisplayName = "2-1")]
+		public void TwoMinusOneTest()
+		{
+			var syntax_tree = FormulaNodeCommon.GetSyntaxTree("2-1");
+			var result = Calculator.Caluculate(syntax_tree);
+			Assert.Equal("1", result);
+		}
+
+		[Fact(DisplayName = "3-2-1")]
+		public void ThreeMinusTwoMinusOneTest()
+		{
+			var syntax_tree = FormulaNodeCommon.GetSyntaxTree("3-2-1");
+			var result = Calculator.Caluculate(syntax_tree);
+			Assert.Equal("0", result);
+		}
+
+		[Fact(DisplayName = "4*9")]
+		public void FourMultiplyNineTest()
+		{
+			var syntax_tree = FormulaNodeCommon.GetSyntaxTree("4*9");
+			var result = Calculator.Caluculate(syntax_tree);
+			Assert.Equal("36", result);
+		}
+		
+		[Fact(DisplayName = "20*50")]
+		public void DoublleDigitsMultiplyTest()
+		{
+			var syntax_tree = FormulaNodeCommon.GetSyntaxTree("20*50");
+			var result = Calculator.Caluculate(syntax_tree);
+			Assert.Equal("1000", result);
+		}
+
+		[Fact(DisplayName = "8/2")]
+		public void EightDivideTwoTest()
+		{
+			var syntax_tree = FormulaNodeCommon.GetSyntaxTree("8/2");
+			var result = Calculator.Caluculate(syntax_tree);
+			Assert.Equal("4", result);
+		}
+
+		[Fact(DisplayName = "50/10")]
+		public void DoublleDigitsDivideTest()
+		{
+			var syntax_tree = FormulaNodeCommon.GetSyntaxTree("50/10");
+			var result = Calculator.Caluculate(syntax_tree);
+			Assert.Equal("5", result);
+		}
 
 	}
 }
